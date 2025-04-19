@@ -89,7 +89,7 @@
     .btn-info {
         padding: 8px 15px;
         background-color: #17a2b8;
-        ``````css color: white;
+        color: white;
         border: none;
         border-radius: 5px;
         font-weight: bold;
@@ -169,6 +169,13 @@
             transform: translateY(0);
         }
     }
+
+    /* Tùy chỉnh cột kích thước và giá */
+    .size-price-cell {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 
 <h2 class="text-center">Danh sách sản phẩm</h2>
@@ -189,11 +196,10 @@
     <thead>
         <tr>
             <th>Tên</th>
-            <th>Giá</th>
+            <th>Kích thước & Giá</th>
             <th>Thương hiệu</th>
             <th>Danh mục</th>
             <th>Chi tiết sản phẩm</th>
-            <th>Size</th>
             <th>Hình ảnh</th>
             <th>Hành động</th>
         </tr>
@@ -203,22 +209,30 @@
         {
             <tr>
                 <td>@item.Name</td>
-                <td>@item.Price.ToString("N0")</td>
+                <td class="size-price-cell">
+                    @if (item.ProductSizes != null && item.ProductSizes.Any())
+                    {
+                        <ul style="margin: 0; padding-left: 20px;">
+                            @foreach (var ps in item.ProductSizes)
+                            {
+                                <li>
+                                    @(ps.Size != null ? ps.Size.size : "Không xác định"):
+                                    @ps.Stock (kho),
+                                    @ps.Price.ToString("N0") VND
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span>Chưa có kích thước</span>
+                    }
+                </td>
                 <td>@(item.Brand != null ? item.Brand.Name : "Không xác định")</td>
                 <td>@(item.Category != null ? item.Category.Name : "Không xác định")</td>
                 <td style="white-space: pre-line;">@item.Description</td>
                 <td>
-                    @if (item.ProductSizes != null && item.ProductSizes.Any())
-                    {
-                        @string.Join(", ", item.ProductSizes.Select(ps => ps.Size?.size.ToString()))
-                    }
-                    else
-                    {
-                        <span>Không xác định</span>
-                    }
-                </td>
-                <td>
-                    @if (item.Images.Any())
+                    @if (item.Images != null && item.Images.Any())
                     {
                         <img src="@item.Images.First().ImageUrl" alt="Ảnh sản phẩm" style="width: 60px; height: 60px; object-fit: cover;" />
                     }

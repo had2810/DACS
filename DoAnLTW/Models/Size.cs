@@ -9,10 +9,9 @@ namespace DoAnLTW.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Kích thước là bắt buộc")]
-        [StringLength(10, ErrorMessage = "Kích thước không được quá 10 ký tự")]
-        public int size { get; set; } // 500g , 1kg , 5kg 
+        [StringLength(30, ErrorMessage = "Kích thước không được quá 10 ký tự")]
+        public string? size { get; set; } 
 
-        // Một size có thể được dùng bởi nhiều sản phẩm
         public List<Product> Products { get; set; } = new List<Product>();
     }
 }

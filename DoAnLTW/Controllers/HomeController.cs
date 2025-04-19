@@ -24,48 +24,55 @@ namespace DoAnLTW.Controllers
         public async Task<IActionResult> Index()
         {
             SetCartCount();
-            // Lấy danh sách danh mục
-            var categories = _context.Categories
-       .Include(c => c.Products) // Load danh sách sản phẩm của từng danh mục
-       .ToList();
 
+            // Lấy danh sách danh mục
+            var categories = await _context.Categories
+                .Include(c => c.Products)
+                    .ThenInclude(p => p.ProductSizes)
+                .ToListAsync();
 
             // Lấy danh sách sản phẩm
-            var products = _context.Products
-                .Include(p => p.Images) // Lấy hình ảnh
-                .Select(p => new Product
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Price = p.Price,
-                    Brand = p.Brand,
-                    Description = p.Description,
-                    CategoryId = p.CategoryId,
-                    ImageUrl = _context.ProductImages
-                        .Where(img => img.ProductId == p.Id)
-                        .Select(img => img.ImageUrl)
-                        .FirstOrDefault()
-                })
-                .ToList();
-            // Lấy 4 sản phẩm mới nhất (Id giảm dần)
-            var recentProducts = _context.Products
+            var products = await _context.Products
                 .Include(p => p.Images)
-                .OrderByDescending(p => p.Id) // Sắp xếp theo ID giảm dần
-                .Take(4) // Chỉ lấy 4 sản phẩm mới nhất
+                .Include(p => p.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
+                .Include(p => p.Brand)
                 .Select(p => new Product
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Price = p.Price,
-                    Brand = p.Brand,
                     Description = p.Description,
+                    Brand = p.Brand,
                     CategoryId = p.CategoryId,
-                    ImageUrl = _context.ProductImages
-                        .Where(img => img.ProductId == p.Id)
-                        .Select(img => img.ImageUrl)
-                        .FirstOrDefault()
+                    ProductSizes = p.ProductSizes,
+                    ImageUrl = p.Images != null && p.Images.Any()
+                        ? p.Images.First().ImageUrl
+                        : null
                 })
-                .ToList();
+                .ToListAsync();
+
+            // Lấy 4 sản phẩm mới nhất (Id giảm dần)
+            var recentProducts = await _context.Products
+                .Include(p => p.Images)
+                .Include(p => p.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
+                .Include(p => p.Brand)
+                .OrderByDescending(p => p.Id)
+                .Take(4)
+                .Select(p => new Product
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Brand = p.Brand,
+                    CategoryId = p.CategoryId,
+                    ProductSizes = p.ProductSizes,
+                    ImageUrl = p.Images != null && p.Images.Any()
+                        ? p.Images.First().ImageUrl
+                        : null
+                })
+                .ToListAsync();
+
             // Tạo model ViewModel để truyền cả hai danh sách vào View
             var viewModel = new HomeViewModel
             {

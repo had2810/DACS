@@ -42,20 +42,20 @@ namespace DoAnLTW.Controllers
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 searchTerm = searchTerm.ToLower();
-                query = query.Where(p => p.Name.ToLower().Contains(searchTerm) || 
-                                       p.Description.ToLower().Contains(searchTerm) ||
-                                       p.Brand.Name.ToLower().Contains(searchTerm) ||
-                                       p.Category.Name.ToLower().Contains(searchTerm));
+                query = query.Where(p => p.Name.ToLower().Contains(searchTerm) ||
+                                        p.Description.ToLower().Contains(searchTerm) ||
+                                        p.Brand.Name.ToLower().Contains(searchTerm) ||
+                                        p.Category.Name.ToLower().Contains(searchTerm));
             }
 
-            // Lọc theo giá
+            // Lọc theo giá từ ProductSizes
             if (minPrice.HasValue)
             {
-                query = query.Where(p => p.Price >= minPrice.Value);
+                query = query.Where(p => p.ProductSizes.Any(ps => ps.Price >= minPrice.Value));
             }
             if (maxPrice.HasValue)
             {
-                query = query.Where(p => p.Price <= maxPrice.Value);
+                query = query.Where(p => p.ProductSizes.Any(ps => ps.Price <= maxPrice.Value));
             }
 
             // Lọc theo thương hiệu
@@ -69,7 +69,7 @@ namespace DoAnLTW.Controllers
             if (!string.IsNullOrEmpty(size))
             {
                 var selectedSizes = size.Split(',').Select(int.Parse).ToList();
-                query = query.Where(p => p.ProductSizes.Any(ps => selectedSizes.Contains(ps.Size.size)));
+                query = query.Where(p => p.ProductSizes.Any(ps => selectedSizes.Contains(ps.SizeId)));
             }
 
             // Lọc theo danh mục
@@ -93,10 +93,11 @@ namespace DoAnLTW.Controllers
             var availableSizes = await _context.Sizes
                 .Select(s => new
                 {
-                    s.size,
-                    ProductCount = _context.ProductSizes.Count(ps => ps.Size.size == s.size)
+                    s.Id,
+                    SizeDisplay = s.size, // Có thể thay bằng s.SizeName nếu model Size được cập nhật
+                    ProductCount = _context.ProductSizes.Count(ps => ps.SizeId == s.Id)
                 })
-                .OrderBy(s => s.size)
+                .OrderBy(s => s.SizeDisplay)
                 .ToListAsync();
 
             // Lấy danh sách danh mục và số lượng sản phẩm
@@ -109,22 +110,24 @@ namespace DoAnLTW.Controllers
                 })
                 .ToListAsync();
 
-            // Tính toán số lượng sản phẩm trong mỗi khoảng giá
+            // Tính toán số lượng sản phẩm trong mỗi khoảng giá dựa trên ProductSizes
             var priceRanges = new List<PriceRange>
-            {
-                new PriceRange { Min = 0M, Max = 500000M },
-                new PriceRange { Min = 500000M, Max = 1000000M },
-                new PriceRange { Min = 1000000M, Max = 2000000M },
-                new PriceRange { Min = 2000000M, Max = 5000000M },
-                new PriceRange { Min = 5000000M, Max = null }
-            };
+        {
+            new PriceRange { Min = 0M, Max = 500000M },
+            new PriceRange { Min = 500000M, Max = 1000000M },
+            new PriceRange { Min = 1000000M, Max = 2000000M },
+            new PriceRange { Min = 2000000M, Max = 5000000M },
+            new PriceRange { Min = 5000000M, Max = null }
+        };
 
             var priceRangeCounts = priceRanges.Select(range => new
             {
                 Range = range,
-                Count = _context.Products.Count(p => 
-                    p.Price >= range.Min && 
-                    (!range.Max.HasValue || p.Price <= range.Max.Value))
+                Count = _context.ProductSizes
+                    .Where(ps => ps.Price >= range.Min && (!range.Max.HasValue || ps.Price <= range.Max.Value))
+                    .Select(ps => ps.ProductId)
+                    .Distinct()
+                    .Count()
             }).ToList();
 
             // Truyền dữ liệu cho view
@@ -143,26 +146,26 @@ namespace DoAnLTW.Controllers
 
             // Lấy danh sách sản phẩm yêu thích từ session
             var favouriteProducts = HttpContext.Session.GetString("FavouriteProducts");
-            ViewBag.FavouriteProducts = string.IsNullOrEmpty(favouriteProducts) 
-                ? new List<int>() 
+            ViewBag.FavouriteProducts = string.IsNullOrEmpty(favouriteProducts)
+                ? new List<int>()
                 : JsonConvert.DeserializeObject<List<int>>(favouriteProducts);
 
             return View(products);
         }
-        
+
         // Hiển thị chi tiết sản phẩm
         public async Task<IActionResult> Detail(int id)
         {
             var product = await _context.Products
-          .Include(p => p.Brand)
-          .Include(p => p.Images)
-          .Include(p => p.ProductSizes) // Đảm bảo có dữ liệu size
-              .ThenInclude(ps => ps.Size)
-          .FirstOrDefaultAsync(p => p.Id == id);
+                .Include(p => p.Brand)
+                .Include(p => p.Images)
+                .Include(p => p.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
-                return NotFound(); // Trả về lỗi 404 nếu sản phẩm không tồn tại
+                return NotFound();
             }
 
             return View(product);
@@ -171,6 +174,7 @@ namespace DoAnLTW.Controllers
         public async Task<IActionResult> FavouriteProducts()
         {
             SetCartCount();
+
             // Lấy danh sách sản phẩm yêu thích từ session
             var favouriteProducts = HttpContext.Session.GetString("FavouriteProducts");
             if (string.IsNullOrEmpty(favouriteProducts))
@@ -222,11 +226,5 @@ namespace DoAnLTW.Controllers
     {
         public decimal Min { get; set; }
         public decimal? Max { get; set; }
-    }
-
-    public class PriceRangeCount
-    {
-        public PriceRange Range { get; set; }
-        public int Count { get; set; }
     }
 }

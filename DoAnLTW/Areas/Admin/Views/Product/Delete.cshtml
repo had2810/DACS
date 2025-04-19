@@ -15,16 +15,44 @@
             <dt class="col-sm-3">Tên sản phẩm</dt>
             <dd class="col-sm-9">@Model.Name</dd>
 
-            <dt class="col-sm-3">Giá</dt>
-            <dd class="col-sm-9">@Model.Price.ToString("N0") đ</dd>
-
-            
             <dt class="col-sm-3">Mô tả</dt>
             <dd class="col-sm-9">@Model.Description</dd>
 
+            <dt class="col-sm-3">Thương hiệu</dt>
             <dd class="col-sm-9">@(Model.Brand != null ? Model.Brand.Name : "Không có thương hiệu")</dd>
+
+            <dt class="col-sm-3">Danh mục</dt>
             <dd class="col-sm-9">@(Model.Category != null ? Model.Category.Name : "Không có danh mục")</dd>
 
+            <dt class="col-sm-3">Kích thước & Giá</dt>
+            <dd class="col-sm-9">
+                @if (Model.ProductSizes != null && Model.ProductSizes.Any())
+                {
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Kích thước</th>
+                                <th>Số lượng tồn kho</th>
+                                <th>Giá (VND)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ps in Model.ProductSizes)
+                            {
+                                <tr>
+                                    <td>@(ps.Size != null ? ps.Size.size : "Không xác định")</td>
+                                    <td>@ps.Stock</td>
+                                    <td>@ps.Price.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <span>Chưa có thông tin kích thước</span>
+                }
+            </dd>
 
             <dt class="col-sm-3">Hình ảnh</dt>
             <dd class="col-sm-9">
@@ -40,7 +68,6 @@
                     <span>Chưa có hình ảnh</span>
                 }
             </dd>
-
         </dl>
 
         <form asp-action="DeleteConfirmed" asp-controller="Product" asp-area="Admin" method="post">

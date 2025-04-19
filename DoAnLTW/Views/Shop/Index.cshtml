@@ -8,8 +8,8 @@
     <div class="row px-xl-5">
         <div class="col-12">
             <nav class="breadcrumb bg-light mb-30">
-                <a class="breadcrumb-item text-dark" a asp-controller="Home" asp-action="Index">Trang chủ</a>
-                <a class="breadcrumb-item text-dark" a asp-controller="Shop" asp-action="Index">Sản phẩm</a>
+                <a class="breadcrumb-item text-dark" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                <a class="breadcrumb-item text-dark" asp-controller="Shop" asp-action="Index">Sản phẩm</a>
             </nav>
         </div>
     </div>
@@ -32,11 +32,11 @@
                     @foreach (var range in ViewBag.PriceRanges)
                     {
                         var rangeText = range.Range.Max != null
-                            ? $"{range.Range.Min:N0} - {range.Range.Max:N0} VNĐ"
-                            : $"Trên {range.Range.Min:N0} VNĐ";
+                        ? $"{range.Range.Min:N0} - {range.Range.Max:N0} VNĐ"
+                        : $"Trên {range.Range.Min:N0} VNĐ";
                         <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                            <input type="checkbox" class="custom-control-input price-filter" 
-                                   id="price-@range.Range.Min" 
+                            <input type="checkbox" class="custom-control-input price-filter"
+                                   id="price-@range.Range.Min"
                                    value="@range.Range.Min-@range.Range.Max">
                             <label class="custom-control-label" for="price-@range.Range.Min">@rangeText</label>
                             <span class="badge border font-weight-normal">@range.Count</span>
@@ -45,7 +45,6 @@
                 </form>
             </div>
             <!-- Price End -->
-            
             <!-- Category Start -->
             <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">PHÂN LOẠI</span></h5>
             <div class="bg-light p-4 mb-30">
@@ -66,7 +65,6 @@
                 </form>
             </div>
             <!-- Category End -->
-            
             <!-- Size Start -->
             <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">LỌC THEO SIZE</span></h5>
             <div class="bg-light p-4 mb-30">
@@ -79,8 +77,8 @@
                     @foreach (var size in ViewBag.Sizes)
                     {
                         <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
-                            <input type="checkbox" class="custom-control-input size-filter" id="size-@size.size" value="@size.size">
-                            <label class="custom-control-label" for="size-@size.size">Size @size.size</label>
+                            <input type="checkbox" class="custom-control-input size-filter" id="size-@size.Id" value="@size.Id">
+                            <label class="custom-control-label" for="size-@size.Id">Size @size.SizeDisplay</label>
                             <span class="badge border font-weight-normal">@size.ProductCount</span>
                         </div>
                     }
@@ -118,11 +116,9 @@
                         </div>
                     </div>
                 </div>
- 
-                @* Danh sách sản phẩm *@
+
                 @model IEnumerable<DoAnLTW.Models.Product>
 
-                <!-- Danh sách sản phẩm -->
                 <!-- Danh sách sản phẩm -->
                 <style>
                     .product-img {
@@ -131,14 +127,14 @@
                         padding-top: 100%;
                     }
 
-                    .product-img img {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        height: 100%;
-                        width: 100%;
-                        object-fit: cover;
-                    }
+                        .product-img img {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            height: 100%;
+                            width: 100%;
+                            object-fit: cover;
+                        }
 
                     .product-action {
                         position: absolute;
@@ -154,15 +150,15 @@
                         opacity: 0;
                     }
 
-                    .product-action a {
-                        display: inline-block;
-                        width: 40px;
-                        height: 40px;
-                        margin: 0 5px;
-                        padding: 7px 0;
-                        text-align: center;
-                        border-radius: 0;
-                    }
+                        .product-action a {
+                            display: inline-block;
+                            width: 40px;
+                            height: 40px;
+                            margin: 0 5px;
+                            padding: 7px 0;
+                            text-align: center;
+                            border-radius: 0;
+                        }
 
                     .product-item:hover .product-action {
                         opacity: 1;
@@ -223,16 +219,22 @@
                         border-radius: 5px;
                     }
 
-                    .btn-black:hover {
-                        background-color: #333 !important;
-                    }
+                        .btn-black:hover {
+                            background-color: #333 !important;
+                        }
                 </style>
+
                 @{
-                    var favouriteProducts = ViewBag.FavouriteProducts as List<int> ?? new List<int>(); // Nhận danh sách ID sản phẩm yêu thích
+                    var favouriteProducts = ViewBag.FavouriteProducts as List<int> ?? new List<int>();
                 }
-                @*danh sách sản phẩm begin *@
+
+                <!-- Danh sách sản phẩm begin -->
                 @foreach (var product in Model)
                 {
+                    var minPrice = product.ProductSizes != null && product.ProductSizes.Any()
+                    ? product.ProductSizes.Min(ps => ps.Price)
+                    : 0M;
+
                     <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
                         <div class="product-item bg-light mb-4">
                             <div class="product-img position-relative overflow-hidden">
@@ -242,7 +244,7 @@
                                         <i class="fa fa-shopping-cart"></i>
                                     </a>
                                     <a class="btn btn-outline-dark btn-square" href="javascript:void(0)" onclick="toggleFavourite(@product.Id)">
-                                        <i class="far fa-heart"></i>
+                                        <i class="@(favouriteProducts.Contains(product.Id) ? "fas fa-heart" : "far fa-heart")"></i>
                                     </a>
                                     <a class="btn btn-outline-dark btn-square" href="@Url.Action("Detail", "Shop", new { id = product.Id })">
                                         <i class="fa fa-search"></i>
@@ -252,7 +254,7 @@
                             <div class="text-center py-4">
                                 <a class="h6 text-decoration-none text-truncate" href="@Url.Action("Detail", "Shop", new { id = product.Id })">@product.Name</a>
                                 <div class="d-flex align-items-center justify-content-center mt-2">
-                                    <h5>@product.Price.ToString("#,##0 VNĐ")</h5>
+                                    <h5>@minPrice.ToString("#,##0 VNĐ")</h5>
                                 </div>
                             </div>
                         </div>
@@ -265,17 +267,17 @@
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="quickAddToCartModalLabel_@product.Id">Chọn size - @product.Name</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
+                                        <span aria-hidden="true">×</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label><strong>Chọn Size:</strong></label>
                                         <div class="size-options">
-                                            @foreach (var ps in product.ProductSizes.DistinctBy(p => p.Size.size))
+                                            @foreach (var ps in product.ProductSizes)
                                             {
-                                                <input type="radio" id="modal_size_@(product.Id)_@ps.Size.size" name="modal_size_@product.Id" value="@ps.Size.size" data-stock="@ps.Stock" class="size-radio">
-                                                <label for="modal_size_@(product.Id)_@ps.Size.size" class="size-label">Size @ps.Size.size</label>
+                                                <input type="radio" id="modal_size_@(product.Id)_@ps.SizeId" name="modal_size_@product.Id" value="@ps.SizeId" data-stock="@ps.Stock" data-price="@ps.Price" class="size-radio">
+                                                <label for="modal_size_@(product.Id)_@ps.SizeId" class="size-label">Size @(ps.Size != null ? ps.Size.size : "Không xác định")</label>
                                             }
                                         </div>
                                     </div>
@@ -283,6 +285,11 @@
                                     <p id="modalStockQuantity_@product.Id" class="text-success mt-3">
                                         <strong>Số lượng có sẵn: </strong>
                                         <span id="modalAvailableStock_@product.Id">0</span>
+                                    </p>
+
+                                    <p id="modalPrice_@product.Id" class="text-success mt-3">
+                                        <strong>Giá: </strong>
+                                        <span id="modalPriceValue_@product.Id">0 VNĐ</span>
                                     </p>
 
                                     <div class="form-group mt-3">
@@ -303,10 +310,6 @@
                     </div>
                 }
                 <!-- Danh sách sản phẩm end -->
-           
-                    
-               @*  danh sách sản phẩm end *@
-
             </div>
         </div>
         <!-- Shop Product End -->
@@ -324,15 +327,18 @@
         });
         document.getElementById(`modalQuantityInput_${productId}`).value = 1;
         document.getElementById(`modalAvailableStock_${productId}`).innerText = "0";
+        document.getElementById(`modalPriceValue_${productId}`).innerText = "0 VNĐ";
     }
 
     // Thêm event listener cho các radio button size
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.size-radio').forEach(radio => {
-            radio.addEventListener('change', function() {
+            radio.addEventListener('change', function () {
                 const productId = this.getAttribute('name').split('_')[2];
                 const stock = this.getAttribute("data-stock") || "0";
+                const price = this.getAttribute("data-price") || "0";
                 document.getElementById(`modalAvailableStock_${productId}`).innerText = stock;
+                document.getElementById(`modalPriceValue_${productId}`).innerText = parseFloat(price).toLocaleString('vi-VN') + " VNĐ";
                 document.getElementById(`modalQuantityInput_${productId}`).value = 1;
             });
         });
@@ -367,30 +373,30 @@
         fetch('/Cart/AddToCart?productId=' + productId + '&size=' + size + '&quantity=' + quantity, {
             method: 'GET'
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Cập nhật số lượng trên icon giỏ hàng
-                document.querySelectorAll('.fa-shopping-cart').forEach(icon => {
-                    const badge = icon.nextElementSibling;
-                    if (badge) {
-                        badge.textContent = data.count;
-                    }
-                });
-                alert("Sản phẩm đã được thêm vào giỏ hàng!");
-                $(`#quickAddToCartModal_${productId}`).modal('hide');
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Lỗi:', error);
-            alert("Lỗi! Không thể thêm vào giỏ hàng: " + error.message);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cập nhật số lượng trên icon giỏ hàng
+                    document.querySelectorAll('.fa-shopping-cart').forEach(icon => {
+                        const badge = icon.nextElementSibling;
+                        if (badge) {
+                            badge.textContent = data.count;
+                        }
+                    });
+                    alert("Sản phẩm đã được thêm vào giỏ hàng!");
+                    $(`#quickAddToCartModal_${productId}`).modal('hide');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert("Lỗi! Không thể thêm vào giỏ hàng: " + error.message);
+            });
     }
 
     // Xử lý nhập số lượng
-    document.addEventListener('input', function(e) {
+    document.addEventListener('input', function (e) {
         if (e.target.id.startsWith('modalQuantityInput_')) {
             const productId = e.target.id.split('_')[1];
             let stockQuantity = parseInt(document.getElementById(`modalAvailableStock_${productId}`).innerText || "0");
@@ -405,17 +411,15 @@
     });
 
     // Xử lý lọc sản phẩm
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Xử lý khi checkbox được click
-        $('.price-filter, .brand-filter, .size-filter, .category-filter').change(function() {
+        $('.price-filter, .brand-filter, .size-filter, .category-filter').change(function () {
             // Xử lý checkbox "Tất cả"
             if ($(this).attr('id').endsWith('-all')) {
                 if ($(this).prop('checked')) {
-                    // Nếu "Tất cả" được chọn, bỏ chọn các checkbox khác trong cùng nhóm
                     $(`.${$(this).attr('class').split(' ')[1]}:not([id$=all])`).prop('checked', false);
                 }
             } else {
-                // Nếu chọn một checkbox khác, bỏ chọn "Tất cả"
                 $(`#${$(this).attr('class').split(' ')[1].replace('filter', 'all')}`).prop('checked', false);
             }
 
@@ -467,7 +471,7 @@
         // Hàm lấy các giá trị đã chọn
         function getSelectedValues(className) {
             var values = [];
-            $('.' + className + ':checked').not('[id$=all]').each(function() {
+            $('.' + className + ':checked').not('[id$=all]').each(function () {
                 values.push($(this).val());
             });
             return values;
@@ -475,7 +479,7 @@
 
         // Đánh dấu các checkbox dựa trên URL hiện tại
         var urlParams = new URLSearchParams(window.location.search);
-        
+
         if (urlParams.has('minPrice')) {
             $('#price-all').prop('checked', false);
             var min = urlParams.get('minPrice');
@@ -485,14 +489,14 @@
 
         if (urlParams.has('brandId')) {
             $('#brand-all').prop('checked', false);
-            urlParams.get('brandId').split(',').forEach(function(brandId) {
+            urlParams.get('brandId').split(',').forEach(function (brandId) {
                 $('#brand-' + brandId).prop('checked', true);
             });
         }
 
         if (urlParams.has('size')) {
             $('#size-all').prop('checked', false);
-            urlParams.get('size').split(',').forEach(function(size) {
+            urlParams.get('size').split(',').forEach(function (size) {
                 $('#size-' + size).prop('checked', true);
             });
         }
