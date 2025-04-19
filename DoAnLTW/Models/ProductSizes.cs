@@ -8,13 +8,17 @@ namespace DoAnLTW.Models
         public int Id { get; set; }
 
         public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public Product ?Product { get; set; }
 
         public int SizeId { get; set; }
-        public Size Size { get; set; }
+        public Size ?Size { get; set; }
 
         [Required(ErrorMessage = "Số lượng là bắt buộc")]
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0")]
-        public int Stock { get; set; } // Số lượng tồn kho cho kích thước này
+        public int Stock { get; set; } 
+
+        [Required(ErrorMessage = "Giá là bắt buộc")]
+        [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
+        public decimal Price { get; set; } 
     }
 }
