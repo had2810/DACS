@@ -1,0 +1,81 @@
+﻿@model DoAnLTW.Models.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/layoutAdmin.cshtml";
+}
+
+<h2 class="text-center">Chi tiết sản phẩm</h2>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="control-label">Tên sản phẩm</label>
+                    <p class="form-control-static">@Model.Name</p>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Giá</label>
+                    <p class="form-control-static">@Model.Price.ToString("N0") đ</p>
+                </div>
+
+              
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Mô tả sản phẩm</label>
+                    <p class="form-control-static">@Model.Description</p>
+                </div>
+
+              
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Thương hiệu</label>
+                    <dd class="col-sm-9">@(Model.Brand != null ? Model.Brand.Name : "Không có thương hiệu")</dd>
+                </div>
+
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Danh mục</label>
+                    <dd class="col-sm-9">@(Model.Category != null ? Model.Category.Name : "Không có danh mục")</dd>
+                </div>
+                <div class="form-group mb-3">
+					<label class="control-label">Size</label>
+					<dd class="col-sm-9">
+						@if (Model.ProductSizes != null && Model.ProductSizes.Any())
+						{
+							@string.Join(", ", Model.ProductSizes.Select(ps => ps.Size?.size.ToString()))
+						}
+						else
+						{
+							<span>Không có size</span>
+						}
+					</dd>
+                </div>
+                <div class="form-group mb-3">
+                    <dt class="col-sm-3">Hình ảnh</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Images != null && Model.Images.Any())
+                        {
+                            foreach (var img in Model.Images)
+                            {
+                                <img src="@img.ImageUrl" alt="Hình ảnh sản phẩm" style="width: 100px; height: 100px; object-fit: cover; margin-right: 5px;" />
+                            }
+                        }
+                        else
+                        {
+                            <span>Chưa có hình ảnh</span>
+                        }
+                    </dd>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group text-center mt-4">
+            <a asp-action="Index" asp-controller="Product" asp-area="Admin" class="btn btn-secondary">Quay lại</a>
+            <a asp-action="Edit" asp-controller="Product" asp-area="Admin" asp-route-id="@Model.Id" class="btn btn-warning">Sửa</a>
+            <a asp-action="Delete" asp-controller="Product" asp-area="Admin" asp-route-id="@Model.Id" class="btn btn-danger">Xóa</a>
+        </div>
+    </div>
+</div>
